@@ -1,14 +1,29 @@
 #include <DarkMatter.H>
 
-inline double
+/*inline double
 power_spectrum(double k)
 {
     if(k != 0.0) {
-        return 1e-8*k;///(1.0 + std::pow(k,4));
+        return 2e-4*k*k/(1.0 + std::pow(k,4));
+    } else {
+        return 0.0;
+    }
+}*/
+
+inline double power_spectrum(double k)
+{
+    double k_peak = 2.0;    // peak location
+    double A = 2e-5;        // amplitude
+    double n = 2.0;         // small-k slope
+    double m = 5.0;         // large-k slope
+
+    if(k > 0.0) {
+        return A * std::pow(k, n) / (1.0 + std::pow(k/k_peak, m));
     } else {
         return 0.0;
     }
 }
+
 
 // Example main function
 int main() {
@@ -16,7 +31,7 @@ int main() {
     
     // Define grid size
     const int N = 256; // Number of points in each dimension
-    const double L = 7700.0; // Domain size in each dimension
+    const double L = 20.0; // Domain size in each dimension
     const double dx = L / N; // Grid spacing
 
     // Allocate memory for the function and its Fourier transform
@@ -202,10 +217,8 @@ int main() {
 		delta_mean += v;
 	}
 	
-	printf("The delta mean is %0.15g\n", delta_mean);
-	
+	printf("The delta mean is %0.15g\n", delta_mean);	
 	printf("The total mass is %0.15g %0.15g %0.15g %0.15g\n", sum, rho_avg, rho_mean, static_cast<double>(N*N*N));
-
 
 	std::vector<std::pair<double, double>> k_and_rho_k_unsrt;
 	compute_power_spectrum(N_test, L, rho_filt, k_and_rho_k_unsrt);

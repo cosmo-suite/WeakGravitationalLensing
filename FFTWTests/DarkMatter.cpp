@@ -32,20 +32,29 @@ generate_fourier_coefficients_for_field_with_spectrum(const int N, const double 
                 // Get the power spectrum value
                 double delta_k_mag = power_spectrum_func(k_mag);
 
+                double volume = L*L*L;
+
                 // Assign random Fourier coefficients with Gaussian-distributed amplitudes
-                double amplitude = std::sqrt(delta_k_mag / 2.0); // Scale by sqrt(P(k)/2) for real+imag contributions
-                double rand = normal_dist(generator);
-                double real_part = amplitude * std::cos(2.0*M_PI*rand);
-                double imag_part = amplitude * std::sin(2.0*M_PI*rand);
+                double amplitude = std::sqrt(delta_k_mag / (2.0 * volume)); // Scale by sqrt(P(k)/2) for real+imag contributions
+
+                double gr = normal_dist(generator);
+                double gi = normal_dist(generator);
+
+                double real_part = amplitude * gr;
+                double imag_part = amplitude * gi;
 
                 delta_k[index][0] = real_part; // Real part
                 delta_k[index][1] = imag_part; // Imaginary part
 
-                if(kx == N/2 or ky == N/2 or kz == N/2){
-                    delta_k[index][0] = amplitude;
+                bool is_special =
+                    (kx == 0 || kx == N/2) &&
+                    (ky == 0 || ky == N/2) &&
+                    (kz == 0 || kz == N/2);
+
+                if (is_special) {
+                    delta_k[index][0] = std::sqrt(delta_k_mag / volume) * normal_dist(generator);
                     delta_k[index][1] = 0.0;
                 }
-
 
                 double kx_mir = kx_minus >= 0 ? kx_minus : N+kx_minus;
                 double ky_mir = ky_minus >= 0 ? ky_minus : N+ky_minus;
@@ -180,7 +189,8 @@ void compute_power_spectrum(const int&  N, const double& L, const std::vector<do
 
                 get_physical_wavenumber(L, N, kx, ky, kz, k_phys, k_phys_int);
                 double k_mag = std::sqrt(k_phys[0] * k_phys[0] + k_phys[1] * k_phys[1] + k_phys[2] * k_phys[2]);
-                double tmp = 2.0*(real_part*real_part + imag_part*imag_part);
+                double volume = L*L*L;
+                double tmp = 2.0*volume*(real_part*real_part + imag_part*imag_part);
                 //tmp = std::fabs(tmp) < 1e-14 ? 0.0 : tmp;
 
                 std::pair<double, double> data_tmp = {k_mag, tmp};
